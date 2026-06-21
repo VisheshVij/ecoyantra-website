@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoYantra — Dashboard</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body class="app-body">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">ECO<span>YANTRA</span></div>
+    <div class="logo-sub">Waste Intelligence</div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Overview</div>
+    <a class="nav-item active" data-page="dashboard" onclick="navigate('dashboard',this)">
+      <i class="fa fa-chart-line"></i><span>Dashboard</span>
+    </a>
+    <a class="nav-item" data-page="analytics" onclick="navigate('analytics',this)">
+      <i class="fa fa-chart-bar"></i><span>Analytics</span>
+    </a>
+
+    <div class="nav-section-label">Operations</div>
+    <a class="nav-item" data-page="waste" onclick="navigate('waste',this)">
+      <i class="fa fa-trash-can"></i><span>Waste Registry</span>
+      <span class="nav-badge warn" id="badge-waste">12</span>
+    </a>
+    <a class="nav-item" data-page="qr" onclick="navigate('qr',this)">
+      <i class="fa fa-qrcode"></i><span>QR Management</span>
+    </a>
+    <a class="nav-item" data-page="lifecycle" onclick="navigate('lifecycle',this)">
+      <i class="fa fa-timeline"></i><span>Lifecycle Tracking</span>
+    </a>
+    <a class="nav-item" data-page="transport" onclick="navigate('transport',this)">
+      <i class="fa fa-truck"></i><span>Transport &amp; GPS</span>
+      <span class="nav-badge warn" id="badge-transport">1</span>
+    </a>
+
+    <div class="nav-section-label">Compliance</div>
+    <a class="nav-item" data-page="compliance" onclick="navigate('compliance',this)">
+      <i class="fa fa-shield-halved"></i><span>Compliance Center</span>
+      <span class="nav-badge err" id="badge-compliance">3</span>
+    </a>
+    <a class="nav-item" data-page="audit" onclick="navigate('audit',this)">
+      <i class="fa fa-file-lines"></i><span>Audit Trail</span>
+    </a>
+    <a class="nav-item" data-page="reports" onclick="navigate('reports',this)">
+      <i class="fa fa-file-pdf"></i><span>Reports</span>
+    </a>
+
+    <div class="nav-section-label">Management</div>
+    <a class="nav-item" data-page="hospitals" onclick="navigate('hospitals',this)">
+      <i class="fa fa-hospital"></i><span>Hospitals</span>
+    </a>
+    <a class="nav-item" data-page="users" onclick="navigate('users',this)">
+      <i class="fa fa-users"></i><span>Users &amp; RBAC</span>
+    </a>
+    <a class="nav-item" data-page="esg" onclick="navigate('esg',this)">
+      <i class="fa fa-leaf"></i><span>ESG &amp; Carbon</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar" id="user-avatar">SA</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name">Super Admin</div>
+        <div class="user-role" id="user-role">AIIMS Mumbai · Live</div>
+      </div>
+      <a href="index.html" class="logout-btn" title="Logout"><i class="fa fa-right-from-bracket"></i></a>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fa fa-bars"></i></button>
+    <div class="topbar-title" id="page-title">Executive Dashboard</div>
+    <div class="topbar-right">
+      <div class="topbar-clock" id="clock"></div>
+      <div class="notif-btn" onclick="toggleNotifPanel()">
+        <i class="fa fa-bell"></i>
+        <span class="notif-dot" id="notif-dot">5</span>
+      </div>
+      <button class="btn-primary btn-sm" onclick="navigate('waste',document.querySelector('[data-page=waste]'))">
+        <i class="fa fa-plus"></i> New Record
+      </button>
+    </div>
+  </header>
+
+  <!-- NOTIFICATION PANEL -->
+  <div class="notif-panel" id="notif-panel">
+    <div class="notif-header"><span>Notifications</span><button onclick="toggleNotifPanel()"><i class="fa fa-x"></i></button></div>
+    <div class="notif-list" id="notif-list"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <section class="page active" id="page-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi kpi-green">
+          <div class="kpi-icon"><i class="fa fa-weight-hanging"></i></div>
+          <div class="kpi-body"><div class="kpi-label">Total Waste Today</div><div class="kpi-val">2,847 <span class="kpi-unit">kg</span></div><div class="kpi-trend up"><i class="fa fa-arrow-trend-up"></i> +6.2% vs yesterday</div></div>
+        </div>
+        <div class="kpi kpi-green">
+          <div class="kpi-icon"><i class="fa fa-shield-halved"></i></div>
+          <div class="kpi-body"><div class="kpi-label">Compliance Score</div><div class="kpi-val" style="color:#0F6E56">94.7<span class="kpi-unit">%</span></div><div class="kpi-trend up"><i class="fa fa-arrow-trend-up"></i> +1.3% this week</div></div>
+        </div>
+        <div class="kpi kpi-warn">
+          <div class="kpi-icon"><i class="fa fa-truck"></i></div>
+          <div class="kpi-body"><div class="kpi-label">Pending Collections</div><div class="kpi-val">12</div><div class="kpi-trend down"><i class="fa fa-triangle-exclamation"></i> 3 overdue &gt; 4h</div></div>
+        </div>
+        <div class="kpi kpi-err">
+          <div class="kpi-icon"><i class="fa fa-circle-exclamation"></i></div>
+          <div class="kpi-body"><div class="kpi-label">Active Violations</div><div class="kpi-val">3</div><div class="kpi-trend down"><i class="fa fa-triangle-exclamation"></i> 2 critical</div></div>
+        </div>
+        <div class="kpi kpi-blue">
+          <div class="kpi-icon"><i class="fa fa-hospital"></i></div>
+          <div class="kpi-body"><div class="kpi-label">Active Hospitals</div><div class="kpi-val">47</div><div class="kpi-trend up"><i class="fa fa-plus"></i> 3 this month</div></div>
+        </div>
+        <div class="kpi kpi-blue">
+          <div class="kpi-icon"><i class="fa fa-qrcode"></i></div>
+          <div class="kpi-body"><div class="kpi-label">QR Scans Today</div><div class="kpi-val">284</div><div class="kpi-trend up">Last: 2 min ago</div></div>
+        </div>
+      </div>
+
+      <div class="row-2-1">
+        <div class="card">
+          <div class="card-header"><span>Waste Trend — Last 7 Days</span><div class="card-actions"><button class="btn-ghost btn-sm" onclick="exportChart()"><i class="fa fa-download"></i> Export</button></div></div>
+          <div class="chart-wrap" style="height:260px"><canvas id="trendChart"></canvas></div>
+          <div class="chart-legend" id="trend-legend"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Today by Category</span></div>
+          <div class="chart-wrap" style="height:180px"><canvas id="catPieChart"></canvas></div>
+          <div class="waste-cat-list">
+            <div class="wcat-row"><span class="wdot yellow"></span><span class="wcat-name">Yellow</span><span class="wcat-kg">842 kg</span></div>
+            <div class="wcat-row"><span class="wdot red"></span><span class="wcat-name">Red</span><span class="wcat-kg">1,124 kg</span></div>
+            <div class="wcat-row"><span class="wdot white"></span><span class="wcat-name">White</span><span class="wcat-kg">487 kg</span></div>
+            <div class="wcat-row"><span class="wdot blue"></span><span class="wcat-name">Blue</span><span class="wcat-kg">394 kg</span></div>
+          </div>
+          <div class="wdi-row">
+            <span class="wdi-label">WDI</span>
+            <div class="wdi-bar-wrap"><div class="wdi-bar" style="width:2.3%"></div></div>
+            <span class="wdi-val good">2.3%</span>
+            <span class="wdi-target">target &lt;5%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row-3">
+        <div class="card">
+          <div class="card-header"><span>Active Alerts</span><button class="btn-ghost btn-sm" onclick="markAllRead()">Mark all read</button></div>
+          <div id="alert-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Hospital Rankings</span></div>
+          <div id="hospital-rankings"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Compliance Score</span></div>
+          <div class="compliance-score-wrap">
+            <div class="cs-big">94.7</div>
+            <div class="cs-sub">Platform Average</div>
+            <div class="cs-bar-wrap"><div class="cs-bar-fill" style="width:94.7%"></div></div>
+            <div class="cs-breakdown">
+              <div class="cs-item"><div class="cs-val good">98%</div><div class="cs-name">Segregation</div></div>
+              <div class="cs-item"><div class="cs-val warn">88%</div><div class="cs-name">Scan Rate</div></div>
+              <div class="cs-item"><div class="cs-val good">96%</div><div class="cs-name">Reporting</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── WASTE REGISTRY ── -->
+    <section class="page" id="page-waste">
+      <div class="page-tabs">
+        <button class="ptab active" onclick="switchTab(this,'waste-new')">New Record</button>
+        <button class="ptab" onclick="switchTab(this,'waste-list')">Active Records <span class="badge">12</span></button>
+        <button class="ptab" onclick="switchTab(this,'waste-history')">History</button>
+      </div>
+
+      <div class="tab-content active" id="waste-new">
+        <div class="card">
+          <div class="card-header"><span>Register Biomedical Waste</span></div>
+          <form id="waste-form" onsubmit="submitWasteForm(event)">
+            <div class="form-grid-2">
+              <div class="form-field">
+                <label>Waste ID <span class="badge info">Auto-generated</span></label>
+                <input type="text" id="wf-id" readonly style="background:var(--bg-2)" />
+              </div>
+              <div class="form-field">
+                <label>Waste Category <span class="req">*</span></label>
+                <select id="wf-category" required onchange="updateCategoryGuidance()">
+                  <option value="">Select category</option>
+                  <option value="YELLOW">🟡 Yellow — Anatomical waste (Incineration only)</option>
+                  <option value="RED">🔴 Red — Contaminated recyclable (Autoclaving)</option>
+                  <option value="WHITE">⬜ White — Sharps waste (Autoclave + shred)</option>
+                  <option value="BLUE">🔵 Blue — Glass / metallic (Sterilization)</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Department <span class="req">*</span></label>
+                <select id="wf-dept" required>
+                  <option value="">Select department</option>
+                  <option>ICU — Intensive Care Unit</option>
+                  <option>Operation Theatre</option>
+                  <option>Ward 7B</option>
+                  <option>Pathology Lab</option>
+                  <option>Emergency</option>
+                  <option>Radiology</option>
+                  <option>Maternity Ward</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Generated By <span class="req">*</span></label>
+                <input type="text" id="wf-by" placeholder="Staff name / employee ID" required />
+              </div>
+              <div class="form-field">
+                <label>Weight (kg) <span class="req">*</span></label>
+                <input type="number" id="wf-weight" placeholder="0.00" step="0.01" min="0.01" max="500" required />
+              </div>
+              <div class="form-field">
+                <label>Quantity (bags / containers)</label>
+                <input type="number" id="wf-qty" value="1" min="1" max="100" />
+              </div>
+              <div class="form-field">
+                <label>Date &amp; Time <span class="req">*</span></label>
+                <input type="datetime-local" id="wf-datetime" required />
+              </div>
+              <div class="form-field">
+                <label>Storage Location</label>
+                <input type="text" id="wf-location" placeholder="e.g. Storage Room B, Floor 2" />
+              </div>
+            </div>
+            <div class="form-field" style="margin-top:12px">
+              <label>Remarks</label>
+              <textarea id="wf-remarks" rows="3" placeholder="Special handling notes, observations..."></textarea>
+            </div>
+            <div class="segregation-guide" id="seg-guide" style="display:none">
+              <div class="seg-icon"><i class="fa fa-circle-info"></i></div>
+              <div id="seg-guide-text"></div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary"><i class="fa fa-check"></i> Register &amp; Generate QR</button>
+              <button type="button" class="btn-secondary" onclick="resetWasteForm()"><i class="fa fa-rotate-left"></i> Reset</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="tab-content" id="waste-list">
+        <div class="card">
+          <div class="card-header">
+            <span>Active Waste Records</span>
+            <div class="card-actions">
+              <input type="text" class="search-input" placeholder="Search by code, dept..." id="waste-search" oninput="filterWasteTable()" />
+              <select class="filter-select" id="waste-cat-filter" onchange="filterWasteTable()">
+                <option value="">All categories</option>
+                <option value="YELLOW">Yellow</option>
+                <option value="RED">Red</option>
+                <option value="WHITE">White</option>
+                <option value="BLUE">Blue</option>
+              </select>
+              <button class="btn-ghost btn-sm" onclick="exportWasteCSV()"><i class="fa fa-download"></i> Export CSV</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="waste-table">
+              <thead><tr><th>Waste Code</th><th>Category</th><th>Department</th><th>Weight</th><th>Generated By</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+              <tbody id="waste-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="waste-history">
+        <div class="card">
+          <div class="card-header"><span>Disposal History</span><button class="btn-ghost btn-sm" onclick="exportWasteCSV()"><i class="fa fa-download"></i> Export</button></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Waste Code</th><th>Category</th><th>Weight</th><th>Disposed At</th><th>CBWTF</th><th>WDI</th><th>Status</th></tr></thead>
+              <tbody id="history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── QR MANAGEMENT ── -->
+    <section class="page" id="page-qr">
+      <div class="page-tabs">
+        <button class="ptab active" onclick="switchTab(this,'qr-scanner')">QR Scanner</button>
+        <button class="ptab" onclick="switchTab(this,'qr-generator')">Generate Labels</button>
+        <button class="ptab" onclick="switchTab(this,'qr-history')">Scan History</button>
+      </div>
+
+      <div class="tab-content active" id="qr-scanner">
+        <div class="row-2-1">
+          <div class="card">
+            <div class="card-header"><span>Live QR Scanner</span></div>
+            <div class="qr-scanner-box" id="qr-scanner-box">
+              <div id="qr-reader" style="width:100%"></div>
+              <div class="qr-placeholder" id="qr-placeholder">
+                <i class="fa fa-camera"></i>
+                <div>Camera access required</div>
+                <button class="btn-primary" onclick="startScanner()">Enable Camera</button>
+              </div>
+            </div>
+            <div style="margin-top:14px">
+              <div class="form-field">
+                <label>Or enter code manually</label>
+                <div style="display:flex;gap:8px">
+                  <input type="text" id="manual-qr-input" placeholder="BMW-XXXX-XXXXXX" style="flex:1" />
+                  <button class="btn-primary" onclick="lookupQR()">Verify</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span>Scan Result</span></div>
+            <div id="qr-result-panel">
+              <div class="empty-state"><i class="fa fa-qrcode"></i><div>Scan a QR code to see details</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <div class="card-header"><span>Recent Scans</span></div>
+          <div class="table-wrap"><table class="data-table"><thead><tr><th>Code</th><th>Category</th><th>Weight</th><th>Scanned By</th><th>Action</th><th>Time</th><th>Status</th></tr></thead><tbody id="scan-history-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="qr-generator">
+        <div class="card">
+          <div class="card-header"><span>Generate QR Labels</span></div>
+          <div class="form-grid-2">
+            <div class="form-field">
+              <label>Select Waste Record</label>
+              <select id="qr-gen-select">
+                <option value="">Choose a waste record...</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Label Count</label>
+              <input type="number" id="qr-label-count" value="1" min="1" max="50" />
+            </div>
+          </div>
+          <div style="margin-top:14px;display:flex;gap:8px">
+            <button class="btn-primary" onclick="generateQRLabel()"><i class="fa fa-qrcode"></i> Generate QR Label</button>
+            <button class="btn-secondary" onclick="printQRLabel()"><i class="fa fa-print"></i> Print Label</button>
+          </div>
+          <div id="qr-preview-area" style="margin-top:20px"></div>
+        </div>
+      </div>
+
+      <div class="tab-content" id="qr-history">
+        <div class="card">
+          <div class="card-header"><span>Full Scan History</span></div>
+          <div class="table-wrap"><table class="data-table"><thead><tr><th>QR Code</th><th>Waste ID</th><th>Category</th><th>Action</th><th>Actor</th><th>Location</th><th>Timestamp</th></tr></thead><tbody id="full-scan-tbody"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── LIFECYCLE TRACKING ── -->
+    <section class="page" id="page-lifecycle">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><span>Track Waste Unit</span></div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <input type="text" id="track-input" placeholder="Enter Waste Code (e.g. BMW-2026-06-08471)" style="flex:1" />
+          <button class="btn-primary" onclick="trackWaste()"><i class="fa fa-magnifying-glass"></i> Track</button>
+        </div>
+        <div id="lifecycle-result"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Recent Lifecycle Activity</span></div>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Waste Code</th><th>Category</th><th>Current Stage</th><th>Last Event</th><th>Actor</th><th>Time</th><th>Action</th></tr></thead><tbody id="lifecycle-tbody"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ── TRANSPORT ── -->
+    <section class="page" id="page-transport">
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-truck"></i></div><div class="kpi-body"><div class="kpi-label">Active Vehicles</div><div class="kpi-val">8</div></div></div>
+        <div class="kpi kpi-warn"><div class="kpi-icon"><i class="fa fa-route"></i></div><div class="kpi-body"><div class="kpi-label">In Transit</div><div class="kpi-val">3</div></div></div>
+        <div class="kpi kpi-err"><div class="kpi-icon"><i class="fa fa-triangle-exclamation"></i></div><div class="kpi-body"><div class="kpi-label">Off-Route Alerts</div><div class="kpi-val">1</div></div></div>
+        <div class="kpi kpi-blue"><div class="kpi-icon"><i class="fa fa-weight-scale"></i></div><div class="kpi-body"><div class="kpi-label">Total Load Today</div><div class="kpi-val">1,847 kg</div></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span>Fleet Status</span><button class="btn-ghost btn-sm" onclick="addVehicle()"><i class="fa fa-plus"></i> Add Vehicle</button></div>
+        <div class="table-wrap"><table class="data-table" id="fleet-table"><thead><tr><th>Vehicle</th><th>Driver</th><th>Route</th><th>Load</th><th>GPS</th><th>ETA</th><th>Status</th><th>Actions</th></tr></thead><tbody id="fleet-tbody"></tbody></table></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><span>GPS Map (Live Tracking)</span></div>
+        <div class="map-placeholder">
+          <i class="fa fa-map-location-dot"></i>
+          <div>Interactive GPS Map</div>
+          <div style="font-size:12px;opacity:0.7">Connect Mapbox API key in config.js to enable live tracking</div>
+          <div id="map-vehicles" style="margin-top:12px"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── COMPLIANCE ── -->
+    <section class="page" id="page-compliance">
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-shield-halved"></i></div><div class="kpi-body"><div class="kpi-label">CPCB Compliance</div><div class="kpi-val" style="color:#0F6E56">94.7%</div><div class="kpi-trend up">On track</div></div></div>
+        <div class="kpi kpi-err"><div class="kpi-icon"><i class="fa fa-ban"></i></div><div class="kpi-body"><div class="kpi-label">Open Violations</div><div class="kpi-val">3</div><div class="kpi-trend down">2 critical</div></div></div>
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-clipboard-check"></i></div><div class="kpi-body"><div class="kpi-label">Audit Readiness</div><div class="kpi-val" style="font-size:18px">Ready</div><div class="kpi-trend up">Last: Apr 2026</div></div></div>
+        <div class="kpi kpi-warn"><div class="kpi-icon"><i class="fa fa-calendar-days"></i></div><div class="kpi-body"><div class="kpi-label">Next SPCB Report</div><div class="kpi-val" style="font-size:16px">12 Jun 2026</div><div class="kpi-trend down">2 days remaining</div></div></div>
+      </div>
+
+      <div class="row-2-1">
+        <div class="card">
+          <div class="card-header"><span>Violations Log</span><button class="btn-ghost btn-sm" onclick="addViolation()"><i class="fa fa-plus"></i> Log Violation</button></div>
+          <div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Hospital</th><th>Type</th><th>Severity</th><th>Detected</th><th>Status</th><th>Actions</th></tr></thead><tbody id="violations-tbody"></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Quick Actions</span></div>
+          <div class="compliance-actions">
+            <button class="comp-action-btn" onclick="generateReport('cpcb')"><i class="fa fa-file-pdf" style="color:#dc2626"></i><div><div class="ca-name">CPCB Monthly Report</div><div class="ca-sub">PDF · Jun 2026</div></div><i class="fa fa-download" style="margin-left:auto"></i></button>
+            <button class="comp-action-btn" onclick="generateReport('bmwm')"><i class="fa fa-table" style="color:#0F6E56"></i><div><div class="ca-name">BMWM Manifest</div><div class="ca-sub">Excel · All hospitals</div></div><i class="fa fa-download" style="margin-left:auto"></i></button>
+            <button class="comp-action-btn" onclick="generateReport('audit')"><i class="fa fa-shield-halved" style="color:#185FA5"></i><div><div class="ca-name">Audit Trail Export</div><div class="ca-sub">CSV · Immutable log</div></div><i class="fa fa-download" style="margin-left:auto"></i></button>
+            <button class="comp-action-btn" onclick="generateReport('esg')"><i class="fa fa-leaf" style="color:#639922"></i><div><div class="ca-name">ESG Sustainability Report</div><div class="ca-sub">PDF · Carbon footprint</div></div><i class="fa fa-download" style="margin-left:auto"></i></button>
+            <button class="comp-action-btn" onclick="pushCPCB()"><i class="fa fa-cloud-arrow-up" style="color:#7c3aed"></i><div><div class="ca-name">Push to CPCB CMS API</div><div class="ca-sub">Live sync · Instant</div></div><i class="fa fa-arrow-right" style="margin-left:auto"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><span>Compliance Trend — Last 6 Months</span></div>
+        <div class="chart-wrap" style="height:220px"><canvas id="complianceChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- ── AUDIT TRAIL ── -->
+    <section class="page" id="page-audit">
+      <div class="card">
+        <div class="card-header">
+          <span>Immutable Audit Trail <span class="badge info">Blockchain-verified</span></span>
+          <div class="card-actions">
+            <input type="text" class="search-input" placeholder="Search actions, users..." id="audit-search" oninput="filterAudit()" />
+            <select class="filter-select" id="audit-role-filter" onchange="filterAudit()">
+              <option value="">All roles</option>
+              <option>Compliance Officer</option>
+              <option>Waste Generator</option>
+              <option>Collection Staff</option>
+              <option>Transport Team</option>
+              <option>Hospital Admin</option>
+              <option>System</option>
+            </select>
+            <button class="btn-ghost btn-sm" onclick="exportAuditCSV()"><i class="fa fa-download"></i> Export</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Timestamp</th><th>User</th><th>Role</th><th>Action</th><th>Entity</th><th>IP Address</th><th>Hash</th><th>Status</th></tr></thead>
+            <tbody id="audit-tbody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer" id="audit-footer"></div>
+      </div>
+    </section>
+
+    <!-- ── REPORTS ── -->
+    <section class="page" id="page-reports">
+      <div class="card">
+        <div class="card-header"><span>Generated Reports</span><button class="btn-primary btn-sm" onclick="generateReport('cpcb')"><i class="fa fa-plus"></i> Generate Report</button></div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Report Name</th><th>Type</th><th>Period</th><th>Hospital</th><th>Generated</th><th>Size</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="reports-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── HOSPITALS ── -->
+    <section class="page" id="page-hospitals">
+      <div class="card">
+        <div class="card-header">
+          <span>Healthcare Facilities</span>
+          <div class="card-actions">
+            <input type="text" class="search-input" placeholder="Search hospitals..." id="hosp-search" oninput="filterHospitals()" />
+            <button class="btn-primary btn-sm" onclick="showAddHospital()"><i class="fa fa-plus"></i> Add Hospital</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Hospital</th><th>City / State</th><th>Beds</th><th>Departments</th><th>Daily Waste</th><th>Compliance</th><th>License Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="hospitals-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── USERS ── -->
+    <section class="page" id="page-users">
+      <div class="card">
+        <div class="card-header">
+          <span>Users &amp; Role Management</span>
+          <div class="card-actions">
+            <input type="text" class="search-input" placeholder="Search users..." id="user-search" oninput="filterUsers()" />
+            <button class="btn-primary btn-sm" onclick="showInviteUser()"><i class="fa fa-user-plus"></i> Invite User</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Hospital</th><th>Last Active</th><th>MFA</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ANALYTICS ── -->
+    <section class="page" id="page-analytics">
+      <div class="kpi-grid">
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-hospital"></i></div><div class="kpi-body"><div class="kpi-label">Active Hospitals</div><div class="kpi-val">47</div><div class="kpi-trend up">+3 this month</div></div></div>
+        <div class="kpi kpi-blue"><div class="kpi-icon"><i class="fa fa-database"></i></div><div class="kpi-body"><div class="kpi-label">Waste Records (Jun)</div><div class="kpi-val">12,841</div><div class="kpi-trend up">All facilities</div></div></div>
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-clock"></i></div><div class="kpi-body"><div class="kpi-label">Avg Collection Time</div><div class="kpi-val">2.8h</div><div class="kpi-trend up">-0.4h vs last month</div></div></div>
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-leaf"></i></div><div class="kpi-body"><div class="kpi-label">ESG Score</div><div class="kpi-val" style="color:#3B6D11">82/100</div><div class="kpi-trend up">+5 pts this quarter</div></div></div>
+      </div>
+      <div class="row-2-1">
+        <div class="card">
+          <div class="card-header"><span>Monthly Waste Volume</span></div>
+          <div class="chart-wrap" style="height:260px"><canvas id="monthlyChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>Category Distribution</span></div>
+          <div class="chart-wrap" style="height:260px"><canvas id="catDonutChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-header"><span>AI Waste Forecast — Next 7 Days</span><span class="badge info">AI-Powered</span></div>
+        <div class="chart-wrap" style="height:200px"><canvas id="forecastChart"></canvas></div>
+        <div class="forecast-note"><i class="fa fa-robot"></i> Forecast based on hospital admission trends and 90-day historical patterns. Confidence: 87%.</div>
+      </div>
+    </section>
+
+    <!-- ── ESG ── -->
+    <section class="page" id="page-esg">
+      <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-leaf"></i></div><div class="kpi-body"><div class="kpi-label">Eco-Score</div><div class="kpi-val" style="color:#3B6D11">82/100</div><div class="kpi-trend up">+5 this quarter</div></div></div>
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-cloud"></i></div><div class="kpi-body"><div class="kpi-label">CO₂ Offset (Jun)</div><div class="kpi-val">12.4T</div><div class="kpi-trend up">vs landfill baseline</div></div></div>
+        <div class="kpi kpi-blue"><div class="kpi-icon"><i class="fa fa-recycle"></i></div><div class="kpi-body"><div class="kpi-label">Recycled Volume</div><div class="kpi-val">847 kg</div><div class="kpi-trend up">Red category</div></div></div>
+        <div class="kpi kpi-green"><div class="kpi-icon"><i class="fa fa-award"></i></div><div class="kpi-body"><div class="kpi-label">NABH Points</div><div class="kpi-val">94</div><div class="kpi-trend up">Green Hospital track</div></div></div>
+      </div>
+      <div class="row-2-1">
+        <div class="card">
+          <div class="card-header"><span>Carbon Footprint Trend</span></div>
+          <div class="chart-wrap" style="height:240px"><canvas id="carbonChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span>ESG Breakdown</span></div>
+          <div id="esg-breakdown"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+<div class="modal" id="modal">
+  <div class="modal-header"><span id="modal-title">Modal</span><button onclick="closeModal()"><i class="fa fa-x"></i></button></div>
+  <div class="modal-body" id="modal-body"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/waste.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/compliance.js"></script>
+<script src="js/audit.js"></script>
+</body>
+</html>
